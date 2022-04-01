@@ -1,0 +1,203 @@
+/************* cd_ls_pwd.c file **************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <ext2fs/ext2_fs.h>
+#include <string.h>
+#include <libgen.h>
+#include <sys/stat.h>
+#include <time.h>
+
+#include "type.h"
+
+/**** globals defined in main.c file ****/
+extern MINODE minode[NMINODE];
+extern MINODE *root;
+extern PROC   proc[NPROC], *running;
+
+extern MINODE *iget();
+
+extern char gpath[128];
+extern char *name[64];
+extern int n;
+
+extern int fd, dev;
+extern int nblocks, ninodes, bmap, imap, iblk;
+
+extern char line[128], cmd[32], pathname[128];
+
+int cd(char* pathname)
+{
+	// printf("===== cd =====\n");
+	// printf("PATHNAME: %s\n", pathname);
+	
+	if (strcmp(pathname, "\0") == 0 || strcmp(pathname, "/") == 0)
+	{
+		running->cwd = root;
+		return 0;
+	}
+	
+	int ino = getino(pathname);
+	MINODE *mip = iget(dev, ino);
+	if (S_ISDIR(mip->INODE.i_mode))
+	{
+		// printf("is a directory\n");
+		iput(running->cwd);
+		running->cwd = mip;
+	}
+	else
+	{
+		printf("ERROR: path %s does not lead to a directory\n", pathname);
+		//iput(dev, mip);
+		// printf("===== end cd =====\n");
+		return 1;
+	}
+	// printf("===== end cd =====\n");
+	
+  // READ Chapter 11.7.3 HOW TO chdir
+}
+
+int ls_file(MINODE *mip, char *name)
+{
+	// READ Chapter 11.7.3 HOW TO ls
+	
+	char *t1 = "xwrxwrxwr-------";
+	char *t2 = "----------------";
+	char ftime[128];
+
+	// printf("mip->INODE.i_mode: %x", mip->INODE.i_mode);
+	if ((mip->INODE.i_mode & 0xF000) == 0x8000) // if (S_ISREG())
+		printf("%c",'-');
+	if ((mip->INODE.i_mode & 0xF000) == 0x4000) // if (S_ISDIR())
+		printf("%c",'d');
+	if ((mip->INODE.i_mode & 0xF000) == 0xA000) // if (S_ISLNK())
+		printf("%c",'l');
+	int i;
+
+	for (i=8; i >=0; i--)
+	{
+		if (mip->INODE.i_mode & (1 << i)) // print r|w|x
+			printf("%c", t1[i]);
+		else
+			printf("%c", t2[i]); // or print -
+	}
+	printf("%4d ",mip->INODE.i_links_count); // link count
+	printf("%4d ",mip->INODE.i_gid); // gid
+	printf("%4d ",mip->INODE.i_uid); // uid
+	
+	// print time
+	strcpy(ftime, ctime(&(mip->INODE.i_mtime))); // print time in calendar form
+	ftime[strlen(ftime)-1] = 0; // kill \n at end
+	printf("%16s ",ftime);
+	printf("%8d ",mip->INODE.i_size); // file size
+	// print name
+	printf("%16s", name); // print file basename
+	// print -> linkname if symbolic file
+	
+	if ((mip->INODE.i_mode & 0xF000)== 0xA000)
+	{
+		printf(" -> %s", (char *)mip->INODE.i_block); // print linked name
+	}
+	return 0;
+}
+
+int ls_dir(MINODE *mip)
+{
+	char buf[BLKSIZE];
+	DIR *dp;
+	char *cp;
+	get_block(dev, mip->INODE.i_block[0], buf);
+	dp = (DIR *)buf;
+	cp = buf;
+	
+	MINODE *temp_mip;
+	int ino;
+	char temp_name[256];
+	int j = 0;
+	while (cp < buf + BLKSIZE){
+		strncpy(temp_name, dp->name, dp->name_len);
+		temp_name[dp->name_len] = 0;
+		
+		// printf("%s  \n", temp_name);
+	
+		ino = dp->inode;
+		temp_mip = iget(dev, ino);
+		ls_file(temp_mip, temp_name);
+		printf(" [%d %d]\n", dev, ino);
+
+		cp += dp->rec_len;
+		dp = (DIR *)cp;
+		iput(temp_mip);
+		j++;
+
+	}
+	printf("\n");
+}
+
+int ls(char* pathname)
+{
+	//printf("ls: list CWD only! YOU FINISH IT for ls pathname\n");
+	// printf("===== ls =====\n");
+	MINODE *mip;
+	unsigned long ino;
+	if (pathname[0] == 0)
+	{
+		// printf("A. \n");
+		// printf("%x\n", running->cwd);
+		ls_dir(running->cwd);
+	}
+	else
+	{
+		ino = getino(pathname);
+		if (ino <= 0)
+		{
+			printf("ERROR: ino <= 0\n");
+			// printf("===== end ls =====\n");
+			return 1;
+		}
+		mip = iget(dev, ino);
+		ls_dir(mip);
+	}
+	// printf("===== end ls =====\n");
+	printf("\n");
+}
+
+int pwd(MINODE *wd)
+{
+	// printf("===== pwd =====\n");
+	printf("cwd = ");
+	if (wd == root)
+		printf("/");
+	else
+		rpwd(running->cwd);
+	printf("\n");
+	// printf("===== end pwd =====\n");
+}
+
+int rpwd(MINODE *wd)
+{
+	// (1). if (wd==root) return;
+	if (wd == root)
+		return;
+
+	// (2). from wd->INODE.i_block[0], get my_ino and parent_ino
+	u32 my_ino;
+	u32 parent_ino = findino(wd, &my_ino); //findino(MINODE *mip, u32 *myino) // myino = i# of . return i# of ..
+	
+	printf("2. in rpwd -- pino: %d, myino: %d\n", parent_ino, my_ino);
+
+	// (3). pip = iget(dev, parent_ino);
+	MINODE *pip = iget(dev, parent_ino);
+
+	// (4). from pip->INODE.i_block[ ]: get my_name string by my_ino as LOCAL
+	char my_name[256];
+	findmyname(pip, my_ino, &my_name); //findmyname(MINODE *parent, u32 myino, char myname[ ]) 
+	// (5). rpwd(pip); // recursive call rpwd(pip) with parent minode
+	rpwd(pip);
+	iput(pip);
+
+	// (6). print "/%s", my_name;
+	printf("/%s", my_name);
+}
+
+
