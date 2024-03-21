@@ -8,6 +8,7 @@ While we started with little to no knowledge, we quickly began learning about th
 
 ## Disk Partitioning
 One of the first practical steps of the project was partitioning the disk (of which we were provided by the professor). This involved using tools such as 'fdisk' to create dedicated partitions on our disk, in which the EXT2 file system would reside.
+
 ![EXT2 Block and Group](https://github.com/daniel-semenko/EXT2FileSystem/assets/74024282/7ea6ba50-603b-47a8-99a7-6e78debee7e7)
 
 ## Superblock Creation
@@ -18,11 +19,13 @@ The next step we took was dividing the disk into block groups, which would optim
 
 ## Inode Table Design
 Before we could fully implement and link our common linux commands, we had to design the inode table, which would define the structure for files and directories. This involved inode file sizing, allocation policies, numbering schemes, and more; needed to represent and manage objects in a file system.
+
 <img width="338" alt="Inode" src="https://github.com/daniel-semenko/EXT2FileSystem/assets/74024282/03acda8c-8fca-4c77-8408-d6472a7d941e">
 
 
 ## Diretory Implementation
 Now, we could fully adapt directories and basic directory functionality. This involved creating the data structures and algorithms for managing files, filenames, and their inode numbers. This then could allow for the creation, reading, and updating/overwriting of entries.
+
 ![dir](https://github.com/daniel-semenko/EXT2FileSystem/assets/74024282/b08c008a-c730-4913-a514-b69e072cad97)
 
 ## Linux Utility
