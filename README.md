@@ -18,7 +18,8 @@ The next step we took was dividing the disk into block groups, which would optim
 
 ## Inode Table Design
 Before we could fully implement and link our common linux commands, we had to design the inode table, which would define the structure for files and directories. This involved inode file sizing, allocation policies, numbering schemes, and more; needed to represent and manage objects in a file system.
-![inode](https://github.com/daniel-semenko/EXT2FileSystem/assets/74024282/64b089e1-4897-446c-ab29-c128a5e58ea7)
+<img width="338" alt="Inode" src="https://github.com/daniel-semenko/EXT2FileSystem/assets/74024282/03acda8c-8fca-4c77-8408-d6472a7d941e">
+
 
 ## Diretory Implementation
 Now, we could fully adapt directories and basic directory functionality. This involved creating the data structures and algorithms for managing files, filenames, and their inode numbers. This then could allow for the creation, reading, and updating/overwriting of entries.
