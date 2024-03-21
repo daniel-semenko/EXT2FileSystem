@@ -1,25 +1,30 @@
-# cs360-lab6-template
+# Building an EXT2 File System from Scratch
 
-Follow KC's write up of the assignment here: https://eecs.wsu.edu/~cs360/mountroot.html
+## Introduction
+As part of the Systems Programming class I took, students were tasked with creating an EXT2 file system, as the semester-long project. We had some basic starter code and guiding help, but the bulk of developing everything was on us. This was an extremely challenging albiet frustrating experience.
 
-Please ensure your code can be compiled with an `mk` script. We haven't provided one for this lab so you will need to write it yourself.
+## Beginnings
+While we started with little to no knowledge, we quickly began learning about the many different key concepts of file systems. Those key concepts including inodes, directories, block allocation, disk partitioning, and more. Throughout the semester, as we learned more and more we added more and more onto our projects. 
 
-## Advice for final project:
-- Find a solid partner. K.C has in the Project Specification page that partners are allows. Use GitHub to manage your shared codebase. 
-- You're going to be working with this codebase until the end of the semester. The most valuable thing you can do rn before the codebase gets too large is refactor KC's provided code into something that compiles without warnings. Our suggestion is to use header files and preprocessor statements (i.e #ifndef HEADER_H #define HEADER_H #endif).
-- come up with a mneumonic for all the variables KC gives you (mip, pip, ip etc...). 
-- Check the GNU EXT2 documentation for stuff KC's book doesn't cover well. 
-- Write documentation/comments in your code, especially in KC's provided code. 
-- Search your errors in the discord channel; someone probably ran into it before. 
+## Disk Partitioning
+One of the first practical steps of the project was partitioning the disk (of which we were provided by the professor). This involved using tools such as 'fdisk' to create dedicated partitions on our disk, in which the EXT2 file system would reside.
+![EXT2 Block and Group](https://github.com/daniel-semenko/EXT2FileSystem/assets/74024282/7ea6ba50-603b-47a8-99a7-6e78debee7e7)
 
-## To Turn In:
-Push your files to GitHub Classroom (see [here](https://eecs.wsu.edu/~cs360/ta_resources/howto-linux-cmds.html) for more details if you do not know how to submit using Git/GitHub Classroom).
+## Superblock Creation
+The next step was to create the superblock, which is a pivotal part of the EXT2 file system. Creating this data structure properly involved key parameters such as block size, inode count, file system size, and more. Though challenging, we succesfully created the superblock, which heavily influences the design and performance of the file system.
 
-Note you must `git push` your code to submit it. Submissions automatically occur based on the last pushed commit whenever the assignment is due.
+## Block Group Organization
+The next step we took was dividing the disk into block groups, which would optimize the performance and reduce fragmentation. This involved decisions around inode size, allocation rules, and inode numbering schemes, among other important items.
 
-## Autotests
-No autotest for this lab.
+## Inode Table Design
+Before we could fully implement and link our common linux commands, we had to design the inode table, which would define the structure for files and directories. This involved inode file sizing, allocation policies, numbering schemes, and more; needed to represent and manage objects in a file system.
+![inode](https://github.com/daniel-semenko/EXT2FileSystem/assets/74024282/64b089e1-4897-446c-ab29-c128a5e58ea7)
 
-## Samples
-As usual, samples may be found at https://eecs.wsu.edu/~cs360/samples/MOUNTROOT/. You may download them via the `wget` utility (see the [How-To Linux Command page](https://eecs.wsu.edu/~cs360/ta_resources/howto-linux-cmds.html) on the course webpage if you are unfamiliar).
+## Diretory Implementation
+Now, we could fully adapt directories and basic directory functionality. This involved creating the data structures and algorithms for managing files, filenames, and their inode numbers. This then could allow for the creation, reading, and updating/overwriting of entries.
+![dir](https://github.com/daniel-semenko/EXT2FileSystem/assets/74024282/b08c008a-c730-4913-a514-b69e072cad97)
 
+## Linux Utility
+Finally, the implementation of the rest of the linux commands could be utilized, allowing for full Linux-style emulation of a EXT2 file system. These commands include cd, ls, pwd, stat, chmod, utime, mkdir, create, open, close, read, cat, rmdir, symlink, write, copy, and more.
+
+These commands, along with those necessary for previously covered sections, all worked together to create a working emulation of an EXT2 File System.
